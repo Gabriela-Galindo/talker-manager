@@ -2,7 +2,10 @@ const express = require('express');
 
 const path = require('path');
 
+const tokenGenerator = require('crypto-random-string');
+
 const readJsonData = require('./readFS');
+const isValidLogin = require('./middlewares/loginValidation');
 
 const talkerPath = path.resolve(__dirname, 'talker.json');
 
@@ -27,12 +30,9 @@ app.get('/talker/:id', async (request, response) => {
   return response.status(HTTP_OK_STATUS).json(talkerById);
 });
 
-const tokenGenerator = require('crypto-random-string');
-
-app.post('/login', async (request, response) => {
-  const { email, password } = request.body;
+app.post('/login', isValidLogin, (request, response) => {
   const token = tokenGenerator(16);
-  return response.status(HTTP_OK_STATUS).json({ token: token });
+  return response.status(HTTP_OK_STATUS).json({ token });
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
