@@ -6,7 +6,13 @@ const tokenGenerator = require('crypto-random-string');
 
 const readJsonData = require('./readFS');
 const isValidLogin = require('./middlewares/loginValidation');
-const { isNameValid, isAgeValid, isTalkValid, isTokenValid } = require('./middlewares/talkerValidation');
+const { isNameValid, 
+  isAgeValid, 
+  isTalkValid, 
+  isTokenValid, 
+  isWatchedAtValid,
+  isRateValid, 
+  isWatchedAtDate } = require('./middlewares/talkerValidation');
 const addTalker = require('./writeFS');
 
 const talkerPath = path.resolve(__dirname, 'talker.json');
@@ -37,7 +43,10 @@ app.post('/login', isValidLogin, (request, response) => {
   return response.status(HTTP_OK_STATUS).json({ token });
 });
 
-app.post('/talker', isTokenValid, isNameValid, isAgeValid, isTalkValid, async (request, response) => {
+app.post('/talker', 
+isTokenValid, isNameValid, isAgeValid, 
+isTalkValid, isWatchedAtValid, 
+isWatchedAtDate, isRateValid, async (request, response) => {
   const { name, age, talk: { watchedAt, rate } } = request.body;
   const talkerData = await readJsonData(talkerPath);
   const newTalker = {
@@ -49,7 +58,6 @@ app.post('/talker', isTokenValid, isNameValid, isAgeValid, isTalkValid, async (r
       rate,
     },
   };
-  console.log(newTalker);
   await addTalker(newTalker);
   return response.status(201).json(newTalker);
 });
