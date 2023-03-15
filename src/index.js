@@ -15,6 +15,8 @@ const { isNameValid,
   isWatchedAtDate } = require('./middlewares/talkerValidation');
 const addTalker = require('./writeFS');
 
+const updateTalker = require('./utils/updateTalker');
+
 const talkerPath = path.resolve(__dirname, 'talker.json');
 
 const app = express();
@@ -22,6 +24,16 @@ app.use(express.json());
 
 const HTTP_OK_STATUS = 200;
 const PORT = process.env.PORT || '3001';
+
+const validations = [
+  isTokenValid,
+  isNameValid,
+  isAgeValid,
+  isTalkValid,
+  isWatchedAtValid,
+  isWatchedAtDate,
+  isRateValid,
+];
 
 app.get('/talker', async (_request, response) => {
   const talkerData = await readJsonData(talkerPath);
@@ -43,10 +55,7 @@ app.post('/login', isValidLogin, (request, response) => {
   return response.status(HTTP_OK_STATUS).json({ token });
 });
 
-app.post('/talker', 
-isTokenValid, isNameValid, isAgeValid, 
-isTalkValid, isWatchedAtValid, 
-isWatchedAtDate, isRateValid, async (request, response) => {
+app.post('/talker', ...validations, async (request, response) => {
   const { name, age, talk: { watchedAt, rate } } = request.body;
   const talkerData = await readJsonData(talkerPath);
   const newTalker = {
@@ -60,6 +69,20 @@ isWatchedAtDate, isRateValid, async (request, response) => {
   };
   await addTalker(newTalker);
   return response.status(201).json(newTalker);
+});
+
+app.put('/talker/:id', ...validations, async (request, response) => {
+  try {
+    const { id } = request.params;
+    const talker = request.body;
+    const updateFile = await updateTalker(id, talker);
+    if (!updateFile) {
+      return response.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+    } 
+    return response.status(HTTP_OK_STATUS).json(updateFile);
+  } catch (err) {
+    console.error(err.message);
+  }
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
