@@ -16,6 +16,7 @@ const { isNameValid,
 const addTalker = require('./writeFS');
 
 const updateTalker = require('./utils/updateTalker');
+const deleteTalker = require('./utils/deleteTalker');
 
 const talkerPath = path.resolve(__dirname, 'talker.json');
 
@@ -80,6 +81,16 @@ app.put('/talker/:id', ...validations, async (request, response) => {
       return response.status(404).json({ message: 'Pessoa palestrante não encontrada' });
     } 
     return response.status(HTTP_OK_STATUS).json(updateFile);
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
+app.delete('/talker/:id', isTokenValid, async (request, response) => {
+  try {
+    const { id } = request.params;
+    await deleteTalker(id);
+    return response.status(204).end();
   } catch (err) {
     console.error(err.message);
   }
